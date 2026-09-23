@@ -138,7 +138,7 @@ class Enemy:
             self.wing_timer += 1
             if self.wing_timer > 10:
                 self.wing_timer = 0
-                self.wing_frame = 1 - self.wing_frame
+                self.wing_frame = (self.wing_frame + 1) % len(self.wing_frames)
                 # Swap image frame
                 if len(self.wing_frames) > 1:
                     self.image = self.wing_frames[self.wing_frame]
