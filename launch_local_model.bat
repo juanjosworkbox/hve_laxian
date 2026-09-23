@@ -1,0 +1,2 @@
+SET LLAMA_CACHE=unsloth/Qwen3.6-35B-A3B-MTP-GGUF
+.\..\llama_cpp_cuda\llama-server --no-reasoning-preserve  --load-mode none --temp 0.6 --top-p 0.95 --top-k 20 --min-p 0.00 --spec-type draft-mtp --spec-draft-n-max 2 -m  .\..\OSS_MODELS\Qwen3.6-35B-A3B-MTP-UD-Q3_K_XL.gguf --host 0.0.0.0 --port 9090 --jinja --api-key 123 --rope-scale 4 --rope-scaling yarn --yarn-orig-ctx 262144 --ctx-size 505000 --cache-type-k q8_0 --cache-type-v q8_0  -cram 16384

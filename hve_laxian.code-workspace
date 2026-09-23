@@ -1,0 +1,69 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"llama-vscode.endpoint_tools": "http://127.0.0.1:9090/",
+		"llama-vscode.endpoint_embeddings": "http://127.0.0.1:9090/",
+		"llama-vscode.endpoint_chat": "http://127.0.0.1:9090/",
+		"llama-vscode.endpoint": "http://127.0.0.1:9090/",
+		"llama-vscode.api_key": "123",
+		"llama-vscode.max_parallel_completions": 1,
+		"chat.tools.terminal.autoApprove": {
+			".venv\\Scripts\\activate": true,
+			"/^\\.venv\\\\Scripts\\\\activate; python -c \"from PIL import Image; img = Image\\.open\\(r'c:\\\\Users\\\\Juan\\\\Documents\\\\src\\\\galaxian\\\\sprites\\\\sprites\\.png'\\); print\\(f'Size: \\{img\\.size\\}'\\); print\\(f'Mode: \\{img\\.mode\\}'\\); import numpy as np; arr = np\\.array\\(img\\); print\\(f'Array shape: \\{arr\\.shape\\}'\\)\"$/": {
+				"approve": true,
+				"matchCommandLine": true
+			},
+			"/^\\.venv\\\\Scripts\\\\activate; python -c \"\nfrom PIL import Image\nimport numpy as np\nimg = Image\\.open\\(r'c:\\\\Users\\\\Juan\\\\Documents\\\\src\\\\galaxian\\\\sprites\\\\sprites\\.png'\\)\nimg = img\\.convert\\('RGBA'\\)\narr = np\\.array\\(img\\)\nh, w, _ = arr\\.shape\nprint\\(f'Total size: \\{w\\}x\\{h\\}'\\)\n# Scan horizontally to find sprite rows \\(rows with non-black/non-transparent content\\)\nnon_black_rows = \\[\\]\nfor y in range\\(h\\):\n    row = arr\\[y\\]\n    if np\\.any\\(row\\[:,:,3\\] > 0\\) and np\\.any\\(row\\[:,:,:3\\] > 0\\):\n        non_black_rows\\.append\\(y\\)\n# Group consecutive rows into sprite regions\nif non_black_rows:\n    regions = \\[\\]\n    start = non_black_rows\\[0\\]\n    prev = non_black_rows\\[0\\]\n    for y in non_black_rows\\[1:\\]:\n        if y > prev \\+ 1:\n            regions\\.append\\(\\(start, prev\\)\\)\n            start = y\n        prev = y\n    regions\\.append\\(\\(start, prev\\)\\)\n    print\\(f'\\\\\\\\nSprite row regions \\(y_start, y_end\\):'\\)\n    for i, \\(s, e\\) in enumerate\\(regions\\):\n        print\\(f'  Region \\{i\\+1\\}: rows \\{s\\}-\\{e\\} \\(height: \\{e-s\\+1\\}px\\)'\\)\n\"$/": {
+				"approve": true,
+				"matchCommandLine": true
+			},
+			"/^\\.venv\\\\Scripts\\\\activate; python -c \"\nfrom PIL import Image\nimg = Image\\.open\\(r'c:\\\\Users\\\\Juan\\\\Documents\\\\src\\\\galaxian\\\\sprites\\\\sprites\\.png'\\)\nimg = img\\.convert\\('RGBA'\\)\npixels = img\\.load\\(\\)\nw, h = img\\.size\nnon_black_rows = \\[\\]\nfor y in range\\(h\\):\n    for x in range\\(w\\):\n        r, g, b, a = pixels\\[x, y\\]\n        if a > 0 and r > 0 and g > 0 and b > 0:\n            non_black_rows\\.append\\(y\\)\n            break\nif non_black_rows:\n    regions = \\[\\]\n    start = non_black_rows\\[0\\]\n    prev = non_black_rows\\[0\\]\n    for y in non_black_rows\\[1:\\]:\n        if y > prev \\+ 1:\n            regions\\.append\\(\\(start, prev\\)\\)\n            start = y\n        prev = y\n    regions\\.append\\(\\(start, prev\\)\\)\n    print\\(f'Total size: \\{w\\}x\\{h\\}'\\)\n    print\\(f'Sprite regions \\(y_start, y_end, height\\):'\\)\n    labels = \\['Title text', 'Player ship \\(Galaxip\\)', 'Commander alien \\(center\\)', 'Red enemies', 'Yellow enemies', 'Escort ships \\(x2\\)', 'Explosion frames \\(multiple\\)', 'Flag icons'\\]\n    for i, \\(s, e\\) in enumerate\\(regions\\):\n        label = labels\\[i\\] if i < len\\(labels\\) else f'Region \\{i\\+1\\}'\n        print\\(f'  \\{label\\}: rows \\{s\\}-\\{e\\} \\(height: \\{e-s\\+1\\}px\\)'\\)\n\"$/": {
+				"approve": true,
+				"matchCommandLine": true
+			},
+			"/^\\.venv\\\\Scripts\\\\activate; python -c \"\nfrom PIL import Image\nimg = Image\\.open\\(r'c:\\\\Users\\\\Juan\\\\Documents\\\\src\\\\galaxian\\\\sprites\\\\sprites\\.png'\\)\nprint\\(f'Mode: \\{img\\.mode\\}'\\)\nprint\\(f'Size: \\{img\\.size\\}'\\)\nprint\\(f'Palette: \\{img\\.getpalette\\(\\) is not None\\}'\\)\npalette = img\\.getpalette\\(\\)\nif palette:\n    print\\(f'Palette length: \\{len\\(palette\\)\\}'\\)\n    # Find which palette entries are non-black/non-transparent\n    colors_used = set\\(\\)\n    pixels = img\\.load\\(\\)\n    w, h = img\\.size\n    for y in range\\(h\\):\n        for x in range\\(w\\):\n            colors_used\\.add\\(pixels\\[x, y\\]\\)\n    print\\(f'Colors used \\(palette indices\\): \\{sorted\\(colors_used\\)\\}'\\)\n    print\\(\\)\n    # Group by rows\n    for idx in sorted\\(colors_used\\):\n        r = palette\\[idx\\*4\\]\n        g = palette\\[idx\\*4\\+1\\]\n        b = palette\\[idx\\*4\\+2\\]\n        a = palette\\[idx\\*4\\+3\\] if len\\(palette\\) > idx\\*4\\+3 else 255\n        print\\(f'  Index \\{idx\\}: RGB\\(\\{r\\},\\{g\\},\\{b\\}\\), A=\\{a\\}'\\)\n\"$/": {
+				"approve": true,
+				"matchCommandLine": true
+			},
+			"/^\\.venv\\\\Scripts\\\\activate; python -c \"\nfrom PIL import Image\nimg = Image\\.open\\(r'c:\\\\Users\\\\Juan\\\\Documents\\\\src\\\\galaxian\\\\sprites\\\\sprites\\.png'\\)\npalette = img\\.getpalette\\(\\)\nprint\\(f'Palette length: \\{len\\(palette\\)\\} \\(should be 768 for 256 entries\\)'\\)\n# Each entry is RGBA \\(4 bytes per color\\)\nfor idx in range\\(min\\(256, len\\(palette\\)//4\\)\\):\n    r = palette\\[idx\\*4\\]\n    g = palette\\[idx\\*4\\+1\\]\n    b = palette\\[idx\\*4\\+2\\]\n    a = palette\\[idx\\*4\\+3\\]\n    if any\\(c > 0 for c in \\[r,g,b,a\\]\\):\n        print\\(f'  Index \\{idx\\}: RGB\\(\\{r\\},\\{g\\},\\{b\\}\\), A=\\{a\\}'\\)\n\"$/": {
+				"approve": true,
+				"matchCommandLine": true
+			},
+			"/^\\.venv\\\\Scripts\\\\activate; python analyze_sprites\\.py$/": {
+				"approve": true,
+				"matchCommandLine": true
+			},
+			"/^python -c \"from PIL import Image; import numpy as np; img = Image\\.open\\('sprites/sprites\\.png'\\); arr = np\\.array\\(img\\); h, w = arr\\.shape; print\\(f'Image size: \\{w\\}x\\{h\\}'\\); palette = img\\.getpalette\\(\\); alpha_map = \\{i: palette\\[i\\*4\\+3\\] for i in range\\(len\\(palette\\)//4\\)\\}; non_empty = \\[\\]; \\[non_empty\\.append\\(y\\) for y in range\\(h\\) for p in arr\\[y\\] if int\\(p\\) in alpha_map and alpha_map\\[int\\(p\\)\\] > 100\\]; regions = \\[\\]; start = non_empty\\[0\\] if non_empty else 0; prev = start; \\[regions\\.append\\(\\(start, prev, prev-start\\+1\\)\\) if y > prev\\+2 else \\(None\\) or __import__\\('builtins'\\)\\.exec\\('global start; start=y'\\) if y > prev\\+2 else __import__\\('builtins'\\)\\.exec\\('global prev; prev=y'\\) for y in non_empty\\[1:\\]\\]; regions\\.append\\(\\(start, prev, prev-start\\+1\\)\\); print\\(f'Sprite regions: \\{len\\(regions\\)\\}'\\); \\[print\\(f'  Region \\{i\\+1\\}: rows \\{s\\}-\\{e\\} \\(height \\{h_px\\}px\\)'\\) for i,\\(s,e,h_px\\) in enumerate\\(regions\\)\\]\"$/": {
+				"approve": true,
+				"matchCommandLine": true
+			},
+			"/^python analyze_sprites\\.py$/": {
+				"approve": true,
+				"matchCommandLine": true
+			},
+			"pip": true,
+			"/^python -c \"import sys; print\\(sys\\.executable\\)\"$/": {
+				"approve": true,
+				"matchCommandLine": true
+			},
+			"C:\\Users\\Juan\\AppData\\Local\\Python\\pythoncore-3.11-64\\python.exe": true,
+			"/^\\.venv\\\\Scripts\\\\activate; python analyze_sprites_deep\\.py$/": {
+				"approve": true,
+				"matchCommandLine": true
+			},
+			"set": true,
+			"/^\\.venv\\\\Scripts\\\\activate; python main\\.py$/": {
+				"approve": true,
+				"matchCommandLine": true
+			},
+			"/^\\.venv\\\\Scripts\\\\activate; python -c \"import pygame; print\\(f'pygame version: \\{pygame\\.version\\.ver\\}'\\)\"$/": {
+				"approve": true,
+				"matchCommandLine": true
+			}
+		}
+	}
+}

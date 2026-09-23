@@ -1,0 +1,123 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^python -m pytest tests/ -v --tb=short$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        ".venv\\Scripts\\activate": true,
+        "/^python -m pytest tests/ -v --tb=short 2>&1 \\| Select-Object -Last 80$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^python -m pytest tests/ -v --tb=short 2>&1 \\| Select-Object -Last 30$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "pytest": true,
+        "pip": true,
+        "/^python -m pytest tests/ -v$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^python -m pytest --cov=\\. --cov-report=html --cov-report=term-missing -v 2>&1$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^\\.\\\\\\.venv\\\\Scripts\\\\activate ; python -m pytest --cov=\\. --cov-report=html --cov-report=term-missing -v$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^python -m pytest tests/test_additional_coverage\\.py -v --tb=short 2>&1 \\| Select-Object -Last 100$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^\\.\\\\\\.venv\\\\Scripts\\\\activate ; python -m pytest tests/test_additional_coverage\\.py -v --tb=short 2>&1 \\| Select-Object -Last 150$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^\\.\\\\\\.venv\\\\Scripts\\\\activate ; python -m pytest tests/test_additional_coverage\\.py -v --tb=short 2>&1 \\| Select-Object -Last 80$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^\\.\\\\\\.venv\\\\Scripts\\\\activate ; python -m pytest tests/test_additional_coverage\\.py -v --tb=short 2>&1 \\| Select-Object -Last 40$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^\\.\\\\\\.venv\\\\Scripts\\\\activate ; python -m pytest tests/ -v --tb=short 2>&1 \\| Select-Object -Last 30$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^\\.\\\\\\.venv\\\\Scripts\\\\activate ; python generate_coverage\\.py$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^\\.\\\\\\.venv\\\\Scripts\\\\activate ; python -m pytest --cov=\\. --cov-report=term-missing tests/ 2>&1 \\| Select-Object -Last 100$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^\\.\\\\\\.venv\\\\Scripts\\\\activate ; python -m pytest tests/test_rendering/test_text_rendering\\.py::TestAttractTextBlinking::test_attract_blinking_text_visible -v --tb=short$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^\\.\\\\\\.venv\\\\Scripts\\\\activate ; python -m pytest --cov=\\. --cov-report=term-missing tests/ 2>&1 \\| Select-Object -Last 60$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^\\.\\\\\\.venv\\\\Scripts\\\\activate ; python -m pytest tests/test_additional_coverage\\.py -v --tb=short 2>&1 \\| Select-Object -Last 50$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^\\.\\\\\\.venv\\\\Scripts\\\\activate ; python -m pytest tests/test_additional_coverage\\.py -v --tb=short 2>&1 \\| Select-Object -Last 60$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^\\.\\\\\\.venv\\\\Scripts\\\\activate ; python -m pytest tests/ --tb=short 2>&1 \\| Select-Object -Last 10$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^\\.\\\\\\.venv\\\\Scripts\\\\activate; python -m pytest tests/ -v --tb=short 2>&1$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^\\.\\\\\\.venv\\\\Scripts\\\\activate; cd c:\\\\Users\\\\Juan\\\\Documents\\\\src\\\\galaxian; python -m pytest tests/ -v --tb=short 2>&1 \\| Select-Object -First 100$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^\\.venv\\\\Scripts\\\\activate; python -m pytest tests/ -v --tb=short 2>&1 \\| Select-Object -Last 60$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^\\.venv\\\\Scripts\\\\activate; python -m pytest tests/test_gameplay_simulation\\.py::TestGameLoopSimulation::test_enemy_shooting_integration tests/test_gameplay_simulation\\.py::TestEnemyFormationShootingRemoval::test_dive_speed_greater_than_formation_speed -v --tb=short$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^\\.venv\\\\Scripts\\\\activate; python -m pytest tests/ -v --tb=short 2>&1 \\| Select-Object -Last 20$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^\\.venv\\\\Scripts\\\\activate; python -m pytest tests/ -v --tb=short 2>&1 \\| Select-Object -Last 30$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^python -c \"from PIL import Image; img = Image\\.open\\('samples/second_row_enemy_animation\\.png'\\); pixels = img\\.load\\(\\); print\\('Image size:', img\\.size\\); print\\('Scanning for frame boundaries\\.\\.\\.'\\); for y in range\\(img\\.height\\): row_colors = \\[pixels\\[x, y\\] for x in range\\(img\\.width\\)\\]; print\\(f'Row \\{y\\}: \\{row_colors\\[:15\\]\\}\\.\\.\\.'\\)\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^python -c \"from PIL import Image; img = Image\\.open\\('samples/second_row_enemy_animation\\.png'\\); w, h = img\\.size; print\\('Size:', w, 'x', h\\); print\\('Analyzing frames\\.\\.\\.'\\); frame_width = 10; num_frames = w // frame_width; print\\('Estimated frames:', num_frames\\); for i in range\\(num_frames\\): x_start = i \\* frame_width; sample = img\\.getpixel\\(\\(x_start \\+ 5, 0\\)\\); print\\(f'Frame \\{i\\}: center pixel at \\(\\{x_start\\+5\\}, 0\\) = \\{sample\\}'\\)\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^python detailed_analysis\\.py$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^python extract_enemy_frames\\.py$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^\\.venv\\\\Scripts\\\\activate; python extract_enemy_frames\\.py$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}
