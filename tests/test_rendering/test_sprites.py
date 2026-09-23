@@ -33,11 +33,15 @@ class TestEnemySprite:
     """Tests for enemy dragonfly sprites."""
 
     def test_enemy_sprite_animation_frames(self, asset_manager):
-        """Enemy sprites should have 2 animation frames."""
-        for key in ['enemy_green', 'enemy_blue', 'enemy_yellow', 'enemy_red']:
+        """Enemy sprites should have 2 animation frames (red has 4)."""
+        for key in ['enemy_green', 'enemy_blue', 'enemy_yellow']:
             frames = asset_manager.sprites[key]
             assert isinstance(frames, list), f"{key} should be a list of frames"
             assert len(frames) == 2, f"{key} should have 2 frames, got {len(frames)}"
+        # Red enemy has 4 frames from second_row_enemy_animation.png
+        red_frames = asset_manager.sprites['enemy_red']
+        assert isinstance(red_frames, list), "enemy_red should be a list of frames"
+        assert len(red_frames) == 4, f"enemy_red should have 4 frames, got {len(red_frames)}"
 
     def test_enemy_sprite_frame_dimensions(self, asset_manager):
         """Each enemy animation frame should be 10x10 pixels."""

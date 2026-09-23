@@ -22,7 +22,7 @@ class AssetManager:
         self.sprites['enemy_green'] = self._create_enemy_sprite((0, 255, 0))
         self.sprites['enemy_blue'] = self._create_enemy_sprite((0, 100, 255))
         self.sprites['enemy_yellow'] = self._create_enemy_sprite((255, 255, 0))
-        self.sprites['enemy_red'] = self._create_enemy_sprite((255, 50, 50))
+        self.sprites['enemy_red'] = self._create_red_enemy_sprite()
         self.sprites['enemy_flagship'] = self._create_flagship_sprite()
         self.sprites['enemy_escort'] = self._create_escort_sprite()
         
@@ -112,6 +112,81 @@ class AssetManager:
         pygame.draw.line(surface1, color, (6, 2), (7, 0), 1)
         
         return [surface0, surface1]
+    
+    def _create_red_enemy_sprite(self):
+        """Create red enemy sprite with 4 animation frames from second_row_enemy_animation.png.
+        
+        Returns a list of 4 pygame Surface objects (10x10 each) showing a dragonfly-like
+        alien with wing flapping animation. Colors match the PNG:
+        - Red body: (224, 0, 0)
+        - Yellow wing tips: (224, 213, 0)
+        - Blue wing bases: (0, 86, 206)
+        - Dark accents: (11, 0, 0)
+        """
+        RED = (224, 0, 0)
+        YELLOW = (224, 213, 0)
+        BLUE = (0, 86, 206)
+        DARK = (11, 0, 0)
+        
+        frames = []
+        
+        # Frame 0: wings raised (initial position)
+        surface0 = pygame.Surface((10, 10), pygame.SRCALPHA)
+        # Red body (center column)
+        pygame.draw.rect(surface0, RED, (3, 2, 4, 6))
+        # Yellow wing tips (upper)
+        pygame.draw.polygon(surface0, YELLOW, [(0, 2), (3, 2), (3, 4)])
+        pygame.draw.polygon(surface0, YELLOW, [(10, 2), (7, 2), (7, 4)])
+        # Blue wing bases (middle)
+        pygame.draw.polygon(surface0, BLUE, [(1, 4), (3, 4), (3, 6)])
+        pygame.draw.polygon(surface0, BLUE, [(9, 4), (7, 4), (7, 6)])
+        # Dark body details
+        pygame.draw.rect(surface0, DARK, (4, 3, 2, 4))
+        frames.append(surface0)
+        
+        # Frame 1: wings intermediate-down (beginning flap down)
+        surface1 = pygame.Surface((10, 10), pygame.SRCALPHA)
+        # Red body
+        pygame.draw.rect(surface1, RED, (3, 2, 4, 6))
+        # Yellow wing tips (lowered slightly)
+        pygame.draw.polygon(surface1, YELLOW, [(0, 3), (3, 3), (3, 5)])
+        pygame.draw.polygon(surface1, YELLOW, [(10, 3), (7, 3), (7, 5)])
+        # Blue wing bases (extended)
+        pygame.draw.polygon(surface1, BLUE, [(1, 5), (3, 5), (3, 7)])
+        pygame.draw.polygon(surface1, BLUE, [(9, 5), (7, 5), (7, 7)])
+        # Dark body details
+        pygame.draw.rect(surface1, DARK, (4, 3, 2, 4))
+        frames.append(surface1)
+        
+        # Frame 2: wings fully lowered (bottom of flap)
+        surface2 = pygame.Surface((10, 10), pygame.SRCALPHA)
+        # Red body
+        pygame.draw.rect(surface2, RED, (3, 2, 4, 6))
+        # Yellow wing tips (fully down)
+        pygame.draw.polygon(surface2, YELLOW, [(0, 5), (3, 4), (3, 6)])
+        pygame.draw.polygon(surface2, YELLOW, [(10, 5), (7, 4), (7, 6)])
+        # Blue wing bases (fully extended)
+        pygame.draw.polygon(surface2, BLUE, [(1, 6), (3, 6), (3, 8)])
+        pygame.draw.polygon(surface2, BLUE, [(9, 6), (7, 6), (7, 8)])
+        # Dark body details
+        pygame.draw.rect(surface2, DARK, (4, 3, 2, 4))
+        frames.append(surface2)
+        
+        # Frame 3: wings intermediate-up (returning to start)
+        surface3 = pygame.Surface((10, 10), pygame.SRCALPHA)
+        # Red body
+        pygame.draw.rect(surface3, RED, (3, 2, 4, 6))
+        # Yellow wing tips (coming back up)
+        pygame.draw.polygon(surface3, YELLOW, [(0, 3), (3, 3), (3, 5)])
+        pygame.draw.polygon(surface3, YELLOW, [(10, 3), (7, 3), (7, 5)])
+        # Blue wing bases (partially retracted)
+        pygame.draw.polygon(surface3, BLUE, [(1, 5), (3, 5), (3, 7)])
+        pygame.draw.polygon(surface3, BLUE, [(9, 5), (7, 5), (7, 7)])
+        # Dark body details
+        pygame.draw.rect(surface3, DARK, (4, 3, 2, 4))
+        frames.append(surface3)
+        
+        return frames
     
     def _create_flagship_sprite(self):
         """Create Galboss flagship sprite with wing animation frames."""
