@@ -4,4 +4,5 @@
 
 ![image](docs/Screenshot.png)
 
+
 - Important Disclaimer Note! PNG Images with captures of sprites of classic Galaxian Arcade by Namco in the samples folder of this repository are not licensed by their authors. They are crops from Wikipedia`s Galaxian page and are used under fair collage use. I do not have any rights to be granted for the use of the galaxian sprites and it is forbiden the use of the materials of this repo for any non educational purposes or for profit purposes.
