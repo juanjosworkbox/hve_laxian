@@ -13,6 +13,60 @@ from constants import (
 )
 from .bullet import Bullet
 
+class DiveFormation:
+    """Shared state for a triangle formation dive group.
+    
+    The leader computes a Bezier curve; escorts apply fixed offsets
+    to the leader's per-frame position to maintain the triangle.
+    """
+    def __init__(self, leader, escorts, lateral_offset=20, vertical_offset=12):
+        self.leader = leader
+        self.escorts = list(escorts)  # list of Enemy instances
+        self.lateral_offset = lateral_offset
+        self.vertical_offset = vertical_offset
+        self.bezier_params = None  # (dive_start, dive_control, dive_target)
+        self.return_params = None  # (return_start, return_control, return_target)
+        self.active = True
+        self.completed = False
+        
+        # Set dive_formation reference on all escorts
+        for escort in self.escorts:
+            escort.dive_formation = self
+    
+    def check_integrity(self):
+        """Return False if formation can no longer hold (leader dead or all escorts dead).
+        
+        When one escort dies, the remaining escort breaks formation and continues
+        as an independent diver. When the leader dies, all escorts break formation.
+        """
+        if not self.leader.alive:
+            self.active = False
+            # All escorts break formation
+            for escort in self.escorts:
+                escort.dive_formation = None
+                escort.formation_offset_x = 0
+                escort.formation_offset_y = 0
+            return False
+        
+        alive_escorts = [e for e in self.escorts if e.alive]
+        dead_escorts = [e for e in self.escorts if not e.alive]
+        
+        if not alive_escorts:
+            self.active = False
+            return False
+        
+        # If one escort died, remaining escort diverges to independent
+        for escort in dead_escorts:
+            escort.dive_formation = None
+        
+        if dead_escorts:
+            for e in alive_escorts:
+                e.formation_offset_x = 0
+                e.formation_offset_y = 0
+        
+        return True
+
+
 class Enemy:
     """Individual enemy with formation and dive behaviors."""
     
@@ -56,7 +110,11 @@ class Enemy:
         self.dive_target = None
         self.dive_progress = 0
         self.dive_shoot_timer = random.randint(30, 90)
-        self.dive_delay = 0  # Staggered wave follower delay (frames)
+        
+        # Triangle formation dive properties
+        self.dive_formation = None  # Reference to DiveFormation if in a group
+        self.formation_offset_x = 0  # Per-escort offset from leader
+        self.formation_offset_y = 0
         
         # Return path properties (curved Bezier return)
         self.return_start = None
@@ -68,27 +126,32 @@ class Enemy:
         self.wing_frame = 0
         self.wing_timer = 0
     
-    def start_dive(self, player_x, player_y, lateral_offset=None):
-        """Start a curved dive toward the player with lateral swooping movement."""
+    def start_dive(self, player_x, player_y, lateral_offset=None, dive_formation=None):
+        """Start a curved dive toward the player with lateral swooping movement.
+        
+        When dive_formation is provided, this enemy is part of a triangle formation
+        dive group (leader + escorts). The leader computes the Bezier curve;
+        escorts apply fixed offsets to maintain the triangle.
+        """
         self.state = 'diving'
-        self.dive_start = (self.rect.centerx, self.rect.centery)
+        self.dive_formation = dive_formation
         
-        # Random lateral offset for curved dive (±60 pixels)
-        if lateral_offset is None:
-            lateral_offset = random.randint(-60, 60)
-        
-        # Control point for bezier curve - offset from midpoint for lateral curve
-        mid_x = (self.dive_start[0] + player_x) / 2 + lateral_offset
-        self.dive_control = (mid_x, DIVE_BEZIER_CONTROL_Y)
-        self.dive_target = (player_x, player_y - 20)
-        self.dive_progress = 0
-        
-        # Store return path data (reverse of dive, curving back to formation)
-        # Return from dive target back to start, with control point above
-        self.return_start = (self.dive_target[0], self.dive_target[1])
-        self.return_control = ((self.dive_start[0] + self.dive_target[0]) / 2, -20)
-        self.return_target = (self.dive_start[0], self.dive_start[1])
-        self.return_progress = 0
+        if dive_formation is not None and dive_formation.leader is self:
+            # Leader: compute Bezier normally
+            self._compute_leader_bezier(player_x, player_y, lateral_offset)
+            # Store params for escorts
+            dive_formation.bezier_params = (
+                self.dive_start, self.dive_control, self.dive_target
+            )
+            dive_formation.return_params = (
+                self.return_start, self.return_control, self.return_target
+            )
+        elif dive_formation is not None:
+            # Escort: derive from leader's params
+            self._compute_escort_bezier(dive_formation)
+        else:
+            # Independent dive (backward compat)
+            self._compute_independent_bezier(player_x, player_y, lateral_offset)
         
         # Reset shoot timer so enemy can fire during dive
         self.dive_shoot_timer = random.randint(15, 40)
@@ -97,6 +160,77 @@ class Enemy:
         sound = self.asset_manager.get_sound('dive')
         if sound:
             sound.play()
+    
+    def _compute_leader_bezier(self, player_x, player_y, lateral_offset):
+        """Compute Bezier curve for leader diver."""
+        self.dive_start = (self.rect.centerx, self.rect.centery)
+        
+        if lateral_offset is None:
+            lateral_offset = random.randint(-60, 60)
+        
+        mid_x = (self.dive_start[0] + player_x) / 2 + lateral_offset
+        self.dive_control = (mid_x, DIVE_BEZIER_CONTROL_Y)
+        self.dive_target = (player_x, player_y - 20)
+        self.dive_progress = 0
+        
+        # Store return path data
+        self.return_start = (self.dive_target[0], self.dive_target[1])
+        self.return_control = ((self.dive_start[0] + self.dive_target[0]) / 2, -20)
+        self.return_target = (self.dive_start[0], self.dive_start[1])
+        self.return_progress = 0
+    
+    def _compute_escort_bezier(self, dive_formation):
+        """Compute Bezier curve for escort based on leader's params.
+        
+        Escorts apply fixed lateral/vertical offsets to the leader's
+        computed positions to maintain the triangle formation.
+        """
+        leader_start, leader_control, leader_target = dive_formation.bezier_params
+        
+        # Determine escort position (left or right of leader)
+        if self.formation_offset_x < 0:
+            # Left escort
+            offset_x = -dive_formation.lateral_offset
+        else:
+            # Right escort
+            offset_x = dive_formation.lateral_offset
+        offset_y = -dive_formation.vertical_offset  # escorts are above leader
+        
+        self.dive_start = (leader_start[0] + offset_x, leader_start[1] + offset_y)
+        self.dive_control = (leader_control[0] + offset_x, leader_control[1] + offset_y)
+        self.dive_target = (leader_target[0] + offset_x, leader_target[1] + offset_y)
+        self.dive_progress = 0
+        
+        # Return path with same offsets
+        leader_return_start, leader_return_control, leader_return_target = dive_formation.return_params
+        self.return_start = (leader_return_start[0] + offset_x, leader_return_start[1] + offset_y)
+        self.return_control = (leader_return_control[0] + offset_x, leader_return_control[1] + offset_y)
+        self.return_target = (leader_return_target[0] + offset_x, leader_return_target[1] + offset_y)
+        self.return_progress = 0
+    
+    def _compute_independent_bezier(self, player_x, player_y, lateral_offset):
+        """Compute Bezier curve for independent dive (backward compat)."""
+        self.dive_start = (self.rect.centerx, self.rect.centery)
+        
+        if lateral_offset is None:
+            lateral_offset = random.randint(-60, 60)
+        
+        mid_x = (self.dive_start[0] + player_x) / 2 + lateral_offset
+        self.dive_control = (mid_x, DIVE_BEZIER_CONTROL_Y)
+        self.dive_target = (player_x, player_y - 20)
+        self.dive_progress = 0
+        
+        # Store return path data
+        self.return_start = (self.dive_target[0], self.dive_target[1])
+        self.return_control = ((self.dive_start[0] + self.dive_target[0]) / 2, -20)
+        self.return_target = (self.dive_start[0], self.dive_start[1])
+        self.return_progress = 0
+    
+    def _get_formation_offset(self):
+        """Return (offset_x, offset_y) relative to leader. Returns (0, 0) for leader."""
+        if self.dive_formation is None:
+            return (0, 0)
+        return (self.formation_offset_x, self.formation_offset_y)
     
     def bezier_point(self, t):
         """Calculate position on quadratic bezier curve."""
@@ -148,8 +282,13 @@ class Enemy:
             speed = self.dive_speed + (round_num * 0.3)
             self.dive_progress += speed / 120  # ~77 frames to complete at base speed
             pos = self.bezier_point(self.dive_progress)
+            
             self.rect.centerx = int(pos[0])
             self.rect.centery = int(pos[1])
+            
+            # Screen-boundary clamping
+            self.rect.centerx = max(ENEMY_WIDTH // 2, min(SCREEN_WIDTH - ENEMY_WIDTH // 2, self.rect.centerx))
+            self.rect.centery = max(0, min(SCREEN_HEIGHT, self.rect.centery))
             
             # Shoot during dive — matches original Galaxian behavior
             # Enemies fire as they approach the player during the dive
@@ -181,6 +320,7 @@ class Enemy:
             
             # Calculate curved return position using Bezier
             pos = self._return_bezier_point(max(0, min(1, self.return_progress)))
+            
             self.rect.centerx = int(pos[0])
             self.rect.centery = int(pos[1])
             

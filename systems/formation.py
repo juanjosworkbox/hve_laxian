@@ -7,8 +7,10 @@ from constants import (
     ENEMY_WIDTH, ENEMY_HEIGHT,
     FORMATION_SPEED_BASE, MAX_DIVES_PER_ROUND,
     DIVE_INTERVAL_BASE, UFO_APPEAR_INTERVAL_BASE, UFO_APPEAR_INTERVAL_MIN,
+    TRIANGLE_LATERAL_OFFSET, TRIANGLE_VERTICAL_OFFSET,
+    SCREEN_WIDTH,
 )
-from entities.enemy import Enemy, UFO
+from entities.enemy import Enemy, UFO, DiveFormation
 
 class Formation:
     """Manages the enemy formation movement and dive triggers.
@@ -36,6 +38,9 @@ class Formation:
         # UFO (escort ship) state
         self.ufo = None
         self.ufo_timer = UFO_APPEAR_INTERVAL_BASE
+        
+        # Triangle formation dive tracking
+        self.dive_formations = []  # List of active DiveFormation instances
         self.ufo_interval = UFO_APPEAR_INTERVAL_BASE
     
     def _assign_enemy_types(self):
@@ -125,23 +130,22 @@ class Formation:
             if result == 'shoot':
                 shooting_enemy = enemy
         
+        # Update dive formations — check integrity, clean up completed
+        for formation in self.dive_formations[:]:
+            if not formation.check_integrity():
+                self.dive_formations.remove(formation)
+                continue
+            if formation.completed:
+                self.dive_formations.remove(formation)
+        
         # Trigger dive attacks (once per frame, not per enemy)
         if player is not None:
             self.dive_timer -= 1
             if self.dive_timer <= 0:
                 diver = self._trigger_dive(player)
                 if diver:
-                    diver.start_dive(player.rect.centerx, player.rect.bottom)
                     self.dives_this_round += 1
                     self.dive_timer = max(30, DIVE_INTERVAL_BASE // 2 - (round_num * 10))
-            
-            # Process wave follower dive delays
-            for enemy in self.enemies:
-                if hasattr(enemy, 'dive_delay') and enemy.dive_delay > 0 and enemy.state == 'formation':
-                    enemy.dive_delay -= 1
-                    if enemy.dive_delay <= 0:
-                        enemy.start_dive(player.rect.centerx, player.rect.bottom)
-                        self.dives_this_round += 1
         
         # Update UFO if it exists
         ufo_result = None
@@ -160,28 +164,56 @@ class Formation:
         return shooting_enemy, ufo_result
     
     def _trigger_dive(self, player):
-        """Find and return a random formation enemy to dive."""
+        """Find and return a random formation enemy to dive in a triangle group.
+        
+        Selects a leader diver and two escorts, then triggers all three
+        simultaneously in triangle formation. Falls back to single independent
+        dive if fewer than 3 enemies are available.
+        """
         if self.dives_this_round >= self.max_dives:
             return None
         
-        # Find a random alive enemy that's in formation
         formation_enemies = [e for e in self.enemies if e.alive and e.state == 'formation']
-        if not formation_enemies:
-            return None
+        if len(formation_enemies) < 3:
+            # Fallback: single independent dive if not enough enemies
+            if not formation_enemies:
+                return None
+            diver = self._select_diver(formation_enemies)
+            diver.start_dive(player.rect.centerx, player.rect.bottom)
+            self.dives_this_round += 1
+            return diver
         
-        # Prefer red and flagship enemies to dive more
-        priority = [e for e in formation_enemies if e.enemy_type in ('red', 'flagship')]
-        if priority:
-            return random.choice(priority)
-        return random.choice(formation_enemies)
+        diver = self._select_diver(formation_enemies)
+        escorts = self._select_escorts(formation_enemies, diver, count=2)
+        
+        formation = DiveFormation(diver, escorts,
+                                  lateral_offset=TRIANGLE_LATERAL_OFFSET,
+                                  vertical_offset=TRIANGLE_VERTICAL_OFFSET)
+        self.dive_formations.append(formation)
+        
+        # Set formation offsets for escorts
+        for i, escort in enumerate(escorts):
+            if i == 0:
+                escort.formation_offset_x = -TRIANGLE_LATERAL_OFFSET
+            else:
+                escort.formation_offset_x = TRIANGLE_LATERAL_OFFSET
+            escort.formation_offset_y = -TRIANGLE_VERTICAL_OFFSET
+        
+        diver.start_dive(player.rect.centerx, player.rect.bottom,
+                         dive_formation=formation)
+        for escort in escorts:
+            escort.start_dive(player.rect.centerx, player.rect.bottom,
+                             dive_formation=formation)
+        
+        self.dives_this_round += 1
+        return diver
     
     def _spawn_ufo(self):
-        """Spawn a UFO and trigger a wave of enemies to dive.
+        """Spawn a UFO and create a triangle formation dive group.
         
-        Original Galaxian behavior:
-        - UFO flies across the top of the screen
-        - When it appears, one enemy dives immediately to follow it
-        - Additional enemies follow in a staggered wave (2-3 followers)
+        Creates the formation and marks the leader and escorts.
+        The actual dive start happens in _trigger_dive when player
+        coordinates are available.
         """
         if not self.enemies:
             return
@@ -191,50 +223,50 @@ class Formation:
         if not formation_enemies:
             return
         
-        diver = random.choice(formation_enemies)
-        formation_enemies.remove(diver)
+        diver = self._select_diver(formation_enemies)
+        escorts = self._select_escorts(formation_enemies, diver, count=2)
+        
+        # Create triangle formation group (but don't start diving yet)
+        formation = DiveFormation(diver, escorts,
+                                  lateral_offset=TRIANGLE_LATERAL_OFFSET,
+                                  vertical_offset=TRIANGLE_VERTICAL_OFFSET)
+        self.dive_formations.append(formation)
+        
+        # Mark enemies as part of formation (dive will start in _trigger_dive)
+        diver.dive_formation = formation
+        for escort in escorts:
+            escort.dive_formation = formation
         
         # Create UFO and set the dive target
         self.ufo = UFO(self.asset_manager, self.round_num)
         self.ufo.set_dive_target(diver)
-        
-        # Schedule wave followers (2-3 enemies diving with staggered delays)
-        num_followers = min(random.randint(2, 3), len(formation_enemies))
-        wave_enemies = random.sample(formation_enemies, num_followers)
-        for i, follower in enumerate(wave_enemies):
-            follower.dive_delay = (i + 1) * 30  # 30-frame stagger between followers
         
         # Play UFO sound
         sound = self.asset_manager.get_sound('ufo_appear')
         if sound:
             sound.play()
     
-    def try_dive(self, player):
-        """Try to trigger a dive attack."""
-        if self.dives_this_round >= self.max_dives:
-            return None
+    def _select_diver(self, formation_enemies):
+        """Select a random formation enemy as the leader diver.
         
-        self.dive_timer -= 1
-        if self.dive_timer > 0:
-            return None
-        
-        # Find a random alive enemy that's in formation
-        formation_enemies = [e for e in self.enemies if e.alive and e.state == 'formation']
-        if not formation_enemies:
-            return None
-        
-        # Prefer red and flagship enemies to dive more
+        Prefers red and flagship enemies (matches original Galaxian behavior).
+        """
         priority = [e for e in formation_enemies if e.enemy_type in ('red', 'flagship')]
         if priority:
-            diver = random.choice(priority)
-        else:
-            diver = random.choice(formation_enemies)
+            return random.choice(priority)
+        return random.choice(formation_enemies)
+    
+    def _select_escorts(self, formation_enemies, leader, count=2):
+        """Select escort enemies that are NOT the leader and NOT already in a formation.
         
-        diver.start_dive(player.rect.centerx, player.rect.bottom)
-        self.dives_this_round += 1
-        self.dive_timer = DIVE_INTERVAL_BASE
-        
-        return diver
+        Only enemies in 'formation' state can be selected as escorts.
+        """
+        candidates = [e for e in formation_enemies if e is not leader and e.state == 'formation']
+        actual_count = min(count, len(candidates))
+        if actual_count < count:
+            # Not enough escorts available — return what we can
+            pass
+        return random.sample(candidates, actual_count) if candidates else []
     
     def alive_count(self):
         """Count alive enemies."""

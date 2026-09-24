@@ -78,6 +78,12 @@ DIVE_BEZIER_CONTROL_Y = 180  # control point Y for curved dive
 DIVE_BASE_SPEED = 1.25  # 1/4 of original 5.0, ~4x formation speed (0.3)
 MAX_DIVES_PER_ROUND = 5  # increases with round
 
+# Triangle formation dive constants
+TRIANGLE_LATERAL_OFFSET = 20   # pixels — horizontal spread from leader
+TRIANGLE_VERTICAL_OFFSET = 12  # pixels — depth behind leader (escorts above)
+TRIANGLE_ESCORTS_PER_LEADER = 2
+TRIANGLE_DIVE_SPEED_SCALE = 1.0  # all three use same speed
+
 # Difficulty scaling
 FORMATION_SPEED_BASE = 0.3
 DIVE_SPEED_BASE = 2

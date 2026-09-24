@@ -1,0 +1,29 @@
+---
+description: "Machine-readable squad status"
+---
+
+# Squad State
+
+## currentRun
+
+- **runId**: run-001
+- **schemaVersion**: 1.4
+- **sessionModel**: auto
+- **status**: complete
+- **topicId**: ufo-escort-dive-formation
+- **mode**: autopilot
+- **costPreflight**:
+  - decision: within-ceiling
+  - runId: run-001
+  - ceilingUsd: not-requested
+  - estimatedSpend: 0.0000
+  - projectedCost: 0.0000
+  - confidence: medium
+  - basis: 2026-09-24|2
+  - timestamp: 2026-09-24T00:00:00Z
+- **notifications**:
+  - channel: in-chat
+- **activeRoles**: [researcher, lead, developer, tester]
+- **stage**: complete
+- **updated**: 2026-09-24T00:00:00Z
+- **turn**: 2
